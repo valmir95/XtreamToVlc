@@ -8,11 +8,13 @@ This was (and probably still is) originally a private, quick and dirty script me
 
 The project requires [Node.js](https://nodejs.org/) to run.
 
+At this moment in time only works for Windows because of the way Windows (stupdily) handles spaces in paths. Should be an easy fix, but because I'm lazy it's still not fixed.
+
 Installation requires the following steps:
 ```sh
 git clone https://github.com/valmir95/XtreamToVlc.git
 cd XtreamToVlc
 npm install
-$ node main.js
+node main.js
 ```
 If no config file is present, you will be asked for your credentials, host and VLC path. This will generate a config file which is going to be used in the future.
