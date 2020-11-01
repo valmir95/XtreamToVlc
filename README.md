@@ -10,9 +10,9 @@ The project requires [Node.js](https://nodejs.org/) to run.
 
 Installation requires the following steps:
 ```sh
-$ git pull https://github.com/valmir95/XtreamToVlc.git
-$ npm install
-$ cd XtreamToVlc
+git clone https://github.com/valmir95/XtreamToVlc.git
+cd XtreamToVlc
+npm install
 $ node main.js
 ```
 If no config file is present, you will be asked for your credentials, host and VLC path. This will generate a config file which is going to be used in the future.
