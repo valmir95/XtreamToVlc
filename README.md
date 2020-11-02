@@ -17,4 +17,5 @@ cd XtreamToVlc
 npm install
 node main.js
 ```
-If no config file is present, you will be asked for your credentials, host and VLC path. This will generate a config file which is going to be used in the future.
+Upon launching the script for the first time you will be prompted for the Xtream credentials to pull data from. This entails the username, password and host. This generates a config file (xtvConfig.json) which can be edited at any point if needed. A shortcut to the script will also be generated for convenience, as you can simply launch it by double-clicking, no matter the location of the .bat/.sh file.
+
