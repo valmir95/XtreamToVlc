@@ -114,6 +114,7 @@ dist
 .vscode-test
 
 *.m3u
+*.bat
 xtvConfig.json
 
 

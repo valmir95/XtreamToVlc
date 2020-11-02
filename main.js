@@ -8,6 +8,7 @@ const CONFIG_FILE_NAME = "xtvConfig.json";
 const SHORTCUT_NAME = "StartVLC";
 const M3U_FOLDER_NAME = "m3u_files";
 
+
 if (fsExtra.existsSync(CONFIG_FILE_NAME)) {
     let configFile = fsExtra.readFileSync(CONFIG_FILE_NAME);
     console.log(JSON.parse(configFile));
@@ -27,7 +28,7 @@ else{
         rl.question("Username: ", (username) => {
 
             rl.question("Password: ", (password) => {
-                rl.question("Vlc path (including the executable): ", (vlcPath) =>{
+                rl.question("VLC directory path: ", (vlcPath) =>{
                     rl.close();
                     let configObj = {host: host, username: username, password: password, vlcPath: vlcPath};
                     createConfigJson(JSON.stringify(configObj));
@@ -45,7 +46,14 @@ else{
 function initiateXtreamRequests(config){
     let categoryDict = {};
 
-    if(config.host.charAt(config.host - 1) != "/") config.host += "/";
+    //TODO: Structure
+    if(config.host.charAt(config.host.length - 1) != "/") config.host += "/";
+
+    //If vlc path it is a directory, we try and append the executable.
+    if(isDir(config.vlcPath)){
+        if(config.vlcPath.charAt(config.vlcPath.length - 1) != "/") config.vlcPath += "/";
+        config.vlcPath += "vlc." + getVlcFileExt();
+    }
 
 
     fsExtra.emptyDirSync(M3U_FOLDER_NAME);
@@ -143,7 +151,7 @@ function createShortcut(){
             break;
     }
 }
-
+//TODO: Add functionality
 function createShFile(){
 
 }
@@ -176,6 +184,7 @@ function getExecCommand(filePath){
 }
 
 function getWindowsExecCommand(filePath){
+
     if(filePath.charAt(0) != '"' && filePath.charAt(filePath -1) != '"'){
         return "\"" + filePath + "\"";
     }
@@ -184,6 +193,28 @@ function getWindowsExecCommand(filePath){
 
 function getMacExecCommand(filePath){
     return "open -a " + filePath;
+}
+
+function isDir(path) {
+    try {
+        var stat = fsExtra.lstatSync(path);
+        return stat.isDirectory();
+    } catch (e) {
+        return false;
+    }
+}
+
+function getVlcFileExt(){
+    let ext = "";
+    switch(process.platform){
+        case "win32":
+            ext = "exe";
+            break;
+        case "darwin":
+            ext = "app";
+            break;
+    }
+    return ext;
 }
 
 
