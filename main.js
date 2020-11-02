@@ -158,7 +158,7 @@ function getWindowsExecCommand(filePath){
 }
 
 function getMacExecCommand(filePath){
-    return "open " + filePath;
+    return "open -a " + filePath;
 }
 
 
