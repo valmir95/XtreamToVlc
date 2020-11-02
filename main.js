@@ -24,7 +24,7 @@ else{
         output: process.stdout
     });
     
-    rl.question("Host (including port): ", (host) => {
+    rl.question("Host (format example: http://<domain>:<port>): ", (host) => {
     
         rl.question("Username: ", (username) => {
 
