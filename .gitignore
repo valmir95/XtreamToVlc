@@ -114,6 +114,7 @@ dist
 .vscode-test
 
 *.m3u
+xtvConfig.json
 
 
 # End of https://www.toptal.com/developers/gitignore/api/node
