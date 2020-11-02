@@ -4,12 +4,12 @@ const readline = require('readline');
 const fsExtra = require('fs-extra');
 const { config } = require('process');
 
-let configPath = "xtvConfig.json";
-let m3uFolderName = "m3u_files";
+const CONFIG_FILE_NAME = "xtvConfig.json";
+const SHORTCUT_NAME = "StartVLC";
+const M3U_FOLDER_NAME = "m3u_files";
 
-
-if (fsExtra.existsSync(configPath)) {
-    let configFile = fsExtra.readFileSync(configPath);
+if (fsExtra.existsSync(CONFIG_FILE_NAME)) {
+    let configFile = fsExtra.readFileSync(CONFIG_FILE_NAME);
     console.log(JSON.parse(configFile));
     initiateXtreamRequests(JSON.parse(configFile));
 }
@@ -48,7 +48,7 @@ function initiateXtreamRequests(config){
     if(config.host.charAt(config.host - 1) != "/") config.host += "/";
 
 
-    fsExtra.emptyDirSync(m3uFolderName);
+    fsExtra.emptyDirSync(M3U_FOLDER_NAME);
 
 
     let liveCategoriesUrl = config.host + "player_api.php?username=" + config.username + "&password=" + config.password + "&action=get_live_categories";
@@ -84,11 +84,11 @@ function fetchLiveChannels(config, categoryDict){
             
 
             if(fsExtra.pathExistsSync(config.vlcPath)){
-                //This is because of Windows' awful handling of spacing in paths...
-                execSync(getExecCommand(config.vlcPath) + " " + m3uFolderName + "/" + m3uFileName);
+                createShortcut();
+                execSync(getExecCommand(config.vlcPath) + " " + M3U_FOLDER_NAME + "/" + m3uFileName);
             }
             else{
-                console.log("Could not find VLC executable. Check your path in " + configPath + " and make sure you also specify the executable at the end");
+                console.log("Could not find VLC executable. Check your path in " + CONFIG_FILE_NAME + " and make sure you also specify the executable at the end");
             }
             
         }
@@ -120,17 +120,42 @@ function createM3u(config, categoryDict, liveChannels){
     let completeFileStr = fileHeader + "\n" + fileBody;
     //TODO: Get a better unique filename. This is not unique at all.
     let fileName = Date.now() + ".m3u";
-    if (!fsExtra.existsSync(m3uFolderName)){
-        fsExtra.mkdirSync(m3uFolderName);
+    if (!fsExtra.existsSync(M3U_FOLDER_NAME)){
+        fsExtra.mkdirSync(M3U_FOLDER_NAME);
     }
-    fsExtra.appendFileSync(m3uFolderName + "/" + fileName, completeFileStr);
+    fsExtra.appendFileSync(M3U_FOLDER_NAME + "/" + fileName, completeFileStr);
     return fileName;
     
 }
 
 //TODO: Fix hardcoded strings
 function createConfigJson(data){
-    fsExtra.appendFileSync(configPath, data);
+    fsExtra.appendFileSync(CONFIG_FILE_NAME, data);
+}
+
+function createShortcut(){
+    switch(process.platform){
+        case "win32":
+            createBatFile();
+            break;
+        case "darwin":
+            //TODO
+            break;
+    }
+}
+
+function createShFile(){
+
+}
+
+function createBatFile(){
+    let shortcutFileName = SHORTCUT_NAME + ".bat";
+    if(!fsExtra.pathExistsSync(shortcutFileName)){
+        let pushd = 'pushd "' + process.cwd() + '"';
+        let nodeExec = "node main.js";
+        let pauseEnter = "pause press [enter]";
+        fsExtra.appendFileSync(shortcutFileName, pushd + "\n" + nodeExec + "\n" + pauseEnter);
+    }
 }
 
 function getExecCommand(filePath){
