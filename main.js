@@ -55,8 +55,6 @@ function initiateXtreamRequests(config){
         if(config.vlcPath.charAt(config.vlcPath.length - 1) != "/") config.vlcPath += "/";
         config.vlcPath += "vlc." + getVlcFileExt();
     }
-    console.log(config.vlcPath);
-    process.exit(0);
 
 
     fsExtra.emptyDirSync(M3U_FOLDER_NAME);
