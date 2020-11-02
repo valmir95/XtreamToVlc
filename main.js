@@ -96,7 +96,7 @@ function fetchLiveChannels(config, categoryDict){
                 execSync(getExecCommand(config.vlcPath) + " " + M3U_FOLDER_NAME + "/" + m3uFileName);
             }
             else{
-                console.log("Could not find VLC executable. Check your path in " + CONFIG_FILE_NAME + " and make sure you also specify the executable at the end");
+                console.log("Could not find VLC executable. Check your path in " + CONFIG_FILE_NAME + " and make sure it is correct.");
             }
             
         }
