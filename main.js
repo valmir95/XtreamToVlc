@@ -3,6 +3,7 @@ const { exec, execSync} = require("child_process");
 const readline = require('readline');
 const fsExtra = require('fs-extra');
 const { config } = require('process');
+const path = require('path');
 
 const CONFIG_FILE_NAME = "xtvConfig.json";
 const SHORTCUT_NAME = "StartVLC";
@@ -54,6 +55,8 @@ function initiateXtreamRequests(config){
         if(config.vlcPath.charAt(config.vlcPath.length - 1) != "/") config.vlcPath += "/";
         config.vlcPath += "vlc." + getVlcFileExt();
     }
+    console.log(config.vlcPath);
+    process.exit(0);
 
 
     fsExtra.emptyDirSync(M3U_FOLDER_NAME);
@@ -195,14 +198,9 @@ function getMacExecCommand(filePath){
     return "open -a " + filePath;
 }
 
-function isDir(path) {
-    try {
-        var stat = fsExtra.lstatSync(path);
-        return stat.isDirectory();
-    } catch (e) {
-        return false;
-    }
-}
+function isDir(pathItem) {
+    return !path.extname(pathItem);
+  }
 
 function getVlcFileExt(){
     let ext = "";
