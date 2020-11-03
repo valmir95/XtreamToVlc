@@ -35,7 +35,7 @@ function getConfigFromUserInput(){
 //TODO: Maybe get rid of requests package?
 //TODO: Better function name
 function initiateXtreamRequests(config){
-    console.log(JSON.parse(configFile));
+    console.log(config);
     let categoryDict = {};
 
     //TODO: Structure
