@@ -18,7 +18,7 @@ else{
     console.log("No config file present. Enter following information to create the config file: \n");
    
     let configObj = getConfigFromUserInput();
-    createConfigJson(JSON.stringify(configObj));
+    createConfigJson(JSON.stringify(configObj, null, 4));
     initiateXtreamRequests(configObj);
 }
 
