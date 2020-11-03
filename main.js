@@ -1,9 +1,8 @@
 const request = require('request');
-const { exec, execSync} = require("child_process");
-const readline = require('readline');
+const { execSync } = require("child_process");
 const fsExtra = require('fs-extra');
-const { config } = require('process');
 const path = require('path');
+const rls = require('readline-sync');
 
 const CONFIG_FILE_NAME = "xtvConfig.json";
 const SHORTCUT_NAME = "StartVLC";
@@ -12,39 +11,31 @@ const M3U_FOLDER_NAME = "m3u_files";
 
 if (fsExtra.existsSync(CONFIG_FILE_NAME)) {
     let configFile = fsExtra.readFileSync(CONFIG_FILE_NAME);
-    console.log(JSON.parse(configFile));
     initiateXtreamRequests(JSON.parse(configFile));
 }
 
 else{
     console.log("No config file present. Enter following information to create the config file: \n");
+   
+    let configObj = getConfigFromUserInput();
+    createConfigJson(JSON.stringify(configObj));
+    initiateXtreamRequests(configObj);
+}
 
-    const rl = readline.createInterface({
-        input: process.stdin,
-        output: process.stdout
-    });
-    
-    rl.question("Host (format example: http://<domain>:<port>): ", (host) => {
-    
-        rl.question("Username: ", (username) => {
+function getConfigFromUserInput(){
+    let host = rls.question("Host (format: http://<domain>:<port>): ");
+    let username = rls.question("Xtream username: ");
+    let password = rls.question("Xtream password: ");
+    let vlcPath = rls.question("VLC directory path: ");
+    let configObj = {host: host, username: username, password: password, vlcPath: vlcPath};
 
-            rl.question("Password: ", (password) => {
-                rl.question("VLC directory path: ", (vlcPath) =>{
-                    rl.close();
-                    let configObj = {host: host, username: username, password: password, vlcPath: vlcPath};
-                    createConfigJson(JSON.stringify(configObj));
-                    initiateXtreamRequests(configObj);
-                });
-            });
-        });
-    
-    });
+    return configObj;
 }
 
 //TODO: Maybe get rid of requests package?
-//TODO: Refactoring. Some hardcoded strings.
 //TODO: Better function name
 function initiateXtreamRequests(config){
+    console.log(JSON.parse(configFile));
     let categoryDict = {};
 
     //TODO: Structure
@@ -62,7 +53,7 @@ function initiateXtreamRequests(config){
 
     let liveCategoriesUrl = config.host + "player_api.php?username=" + config.username + "&password=" + config.password + "&action=get_live_categories";
     request({url: liveCategoriesUrl, json: true}, (error, res, body) => {
-        console.log("Fetching live categories...");
+        console.log("fetching live categories...");
         //TODO: Needs better checks.
         if (!error && res.statusCode == 200 && Array.isArray(body)) {
             body.forEach(category => {
@@ -90,8 +81,6 @@ function fetchLiveChannels(config, categoryDict){
         if (!error && res.statusCode == 200 && Array.isArray(body)) {
             let m3uFileName = createM3u(config, categoryDict, body);
 
-            
-
             if(fsExtra.pathExistsSync(config.vlcPath)){
                 createShortcut();
                 execSync(getExecCommand(config.vlcPath) + " " + M3U_FOLDER_NAME + "/" + m3uFileName);
@@ -99,7 +88,6 @@ function fetchLiveChannels(config, categoryDict){
             else{
                 console.log("Could not find VLC executable. Check your path in " + CONFIG_FILE_NAME + " and make sure it is correct.");
             }
-            
         }
 
         else{
@@ -127,7 +115,7 @@ function createM3u(config, categoryDict, liveChannels){
     });
 
     let completeFileStr = fileHeader + "\n" + fileBody;
-    //TODO: Get a better unique filename. This is not unique at all.
+    //TODO: Use a better name
     let fileName = Date.now() + ".m3u";
     if (!fsExtra.existsSync(M3U_FOLDER_NAME)){
         fsExtra.mkdirSync(M3U_FOLDER_NAME);
@@ -137,7 +125,6 @@ function createM3u(config, categoryDict, liveChannels){
     
 }
 
-//TODO: Fix hardcoded strings
 function createConfigJson(data){
     fsExtra.appendFileSync(CONFIG_FILE_NAME, data);
 }

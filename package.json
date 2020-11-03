@@ -12,6 +12,7 @@
   "dependencies": {
     "fs-extra": "^9.0.1",
     "open": "^7.3.0",
+    "readline-sync": "^1.4.10",
     "request": "^2.88.2"
   }
 }
