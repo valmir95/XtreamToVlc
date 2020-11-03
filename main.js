@@ -53,7 +53,6 @@ function initiateXtreamRequests(config){
 
     let liveCategoriesUrl = config.host + "player_api.php?username=" + config.username + "&password=" + config.password + "&action=get_live_categories";
     request({url: liveCategoriesUrl, json: true}, (error, res, body) => {
-        console.log("fetching live categories...");
         //TODO: Needs better checks.
         if (!error && res.statusCode == 200 && Array.isArray(body)) {
             body.forEach(category => {
