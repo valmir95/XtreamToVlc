@@ -115,7 +115,9 @@ dist
 
 *.m3u
 *.bat
+*.command
 xtvConfig.json
+.DS_Store
 
 
 # End of https://www.toptal.com/developers/gitignore/api/node

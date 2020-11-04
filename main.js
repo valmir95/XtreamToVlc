@@ -141,13 +141,19 @@ function createShortcut(){
             createBatFile();
             break;
         case "darwin":
-            //TODO
+            createShFile();
             break;
     }
 }
-//TODO: Add functionality
-function createShFile(){
 
+function createShFile(){
+    let shortcutFileName = SHORTCUT_NAME + ".command";
+    if(!fsExtra.pathExistsSync(shortcutFileName)){
+        let cd = 'cd "' + process.cwd() + '"';
+        let nodeExec = "node main.js";
+        fsExtra.appendFileSync(shortcutFileName, cd + "\n" + nodeExec);
+        fsExtra.chmodSync(shortcutFileName, "755");
+    }
 }
 
 function createBatFile(){
