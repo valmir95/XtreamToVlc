@@ -9,21 +9,29 @@ const SHORTCUT_NAME = "StartVLC";
 const M3U_FOLDER_NAME = "m3u_files";
 
 
-if (fsExtra.existsSync(CONFIG_FILE_NAME)) {
-    let configFile = fsExtra.readFileSync(CONFIG_FILE_NAME);
-    initiateXtreamRequests(JSON.parse(configFile));
+try {
+    run();
+} catch (error) {
+    //TODO: Better error handling.
+    console.log("Encountered error: " + error);
 }
 
-else{
-    console.log("No config file present. Enter following information to create the config file: \n");
-    let configObj = getConfigFromUserInput();
-    createConfigJson(configObj);
-    if(configObj.vlcPath != null){
-        initiateXtreamRequests(configObj);
+
+function run(){
+    let configObj;
+    
+    if (fsExtra.existsSync(CONFIG_FILE_NAME)) {
+        let configFile = fsExtra.readFileSync(CONFIG_FILE_NAME);
+        configObj = JSON.parse(configFile);
     }
+
     else{
-        console.log("VLC not found in default directory for your system. Make sure VLC installed and/or enter the path manually in " + CONFIG_FILE_NAME);
+        console.log("No config file present. Enter following information to create the config file: \n");
+        configObj = getConfigFromUserInput();
+        createConfigJson(configObj);   
     }
+
+    initiateXtreamRequests(configObj);
 }
 
 function getConfigFromUserInput(){
