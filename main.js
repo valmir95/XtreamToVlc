@@ -16,19 +16,22 @@ if (fsExtra.existsSync(CONFIG_FILE_NAME)) {
 
 else{
     console.log("No config file present. Enter following information to create the config file: \n");
-   
     let configObj = getConfigFromUserInput();
-    createConfigJson(JSON.stringify(configObj, null, 4));
-    initiateXtreamRequests(configObj);
+    createConfigJson(configObj);
+    if(configObj.vlcPath != null){
+        initiateXtreamRequests(configObj);
+    }
+    else{
+        console.log("VLC not found in default directory for your system. Make sure VLC installed and/or enter the path manually in " + CONFIG_FILE_NAME);
+    }
 }
 
 function getConfigFromUserInput(){
-    let host = rls.question("Host (format: http://<domain>:<port>): ");
-    let username = rls.question("Xtream username: ");
-    let password = rls.question("Xtream password: ");
-    let vlcPath = rls.question("VLC directory path: ");
-    let configObj = {host: host, username: username, password: password, vlcPath: vlcPath};
-
+    let hostInput = rls.question("Host (format: http://<domain>:<port>): ");
+    let usernameInput = rls.question("Xtream username: ");
+    let passwordInput = rls.question("Xtream password: ");
+    let vlcPath = findVlcFromDefaultPath();
+    let configObj = {host: hostInput, username: usernameInput, password: passwordInput, vlcPath: vlcPath};
     return configObj;
 }
 
@@ -124,8 +127,12 @@ function createM3u(config, categoryDict, liveChannels){
     
 }
 
-function createConfigJson(data){
-    fsExtra.appendFileSync(CONFIG_FILE_NAME, data);
+function createConfigJson(configObj){
+    let configObjCopy = Object.assign({}, configObj);
+    if(configObjCopy.vlcPath == null){
+        configObjCopy.vlcPath = "";
+    }
+    fsExtra.appendFileSync(CONFIG_FILE_NAME, JSON.stringify(configObjCopy, null, 4));
 }
 
 function createShortcut(){
@@ -168,6 +175,37 @@ function getExecCommand(filePath){
     }
 
     return execCommand;
+}
+
+function findVlcFromDefaultPath(){
+    let path = null;
+    const DEFAULT_WINDOWS_PATHS = [
+        "C:/Program Files/VideoLAN/VLC/vlc.exe",
+        "C:/Program Files (x86)/VideoLAN/VLC/vlc.exe"
+    ];
+
+    const DEFAULT_MAC_PATHS = [
+        "/Applications/vlc.app"
+    ];
+
+    switch(process.platform){
+        case "win32":
+            path = getPathFromList(DEFAULT_WINDOWS_PATHS);
+            break;
+        case "darwin":
+            path = getPathFromList(DEFAULT_MAC_PATHS);
+            break;
+    }
+    return path;
+}
+
+function getPathFromList(pathList){
+    for(let i = 0; i<pathList.length; i++){
+        if(fsExtra.pathExistsSync(pathList[i])){
+            return pathList[i];
+        } 
+    }
+    return null;
 }
 
 function getWindowsExecCommand(filePath){
