@@ -7,8 +7,8 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "author": "Valmir95",
+  "license": "MIT",
   "dependencies": {
     "fs-extra": "^9.0.1",
     "open": "^7.3.0",
