@@ -168,7 +168,7 @@ function createBatFile(){
     let shortcutFileName = SHORTCUT_NAME + ".bat";
     if(!fsExtra.pathExistsSync(shortcutFileName)){
         let pushd = 'pushd "' + process.cwd() + '"';
-        let nodeExec = "node main.js";
+        let nodeExec = "npm start";
         let pauseEnter = "pause press [enter]";
         fsExtra.appendFileSync(shortcutFileName, pushd + "\n" + nodeExec + "\n" + pauseEnter);
     }
