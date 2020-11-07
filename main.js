@@ -53,7 +53,7 @@ function initiateXtreamRequests(config){
     if(config.host.charAt(config.host.length - 1) != "/") config.host += "/";
 
     //If vlc path is a directory, we try and append the executable.
-    if(isDir(config.vlcPath)){
+    if(config.vlcPath != null && isDir(config.vlcPath)){
         if(config.vlcPath.charAt(config.vlcPath.length - 1) != "/") config.vlcPath += "/";
         config.vlcPath += "vlc." + getVlcFileExt();
     }
