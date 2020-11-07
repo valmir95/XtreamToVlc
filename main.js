@@ -158,7 +158,7 @@ function createShFile(){
     let shortcutFileName = SHORTCUT_NAME + ".command";
     if(!fsExtra.pathExistsSync(shortcutFileName)){
         let cd = 'cd "' + process.cwd() + '"';
-        let nodeExec = "node main.js";
+        let nodeExec = "npm start";
         fsExtra.appendFileSync(shortcutFileName, cd + "\n" + nodeExec);
         fsExtra.chmodSync(shortcutFileName, "755");
     }
