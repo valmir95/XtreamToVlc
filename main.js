@@ -79,7 +79,7 @@ function initiateXtreamRequests(config){
 			if(error){
 				errorMsg += '\n' + error;
 			}
-			throw new Error(errorMsg);
+			console.log(errorMsg);
 		}
 	});
     
@@ -99,7 +99,7 @@ function fetchLiveChannels(config, categoryDict){
 				execSync(execCommand);
 			}
 			else{
-				throw new Error('Could not find VLC executable. Check your path in ' + CONFIG_FILE_NAME + ' and make sure it is correct.');
+				console.log('Could not find VLC executable. Check your path in ' + CONFIG_FILE_NAME + ' and make sure it is correct.');
 			}
 		}
 
@@ -108,7 +108,7 @@ function fetchLiveChannels(config, categoryDict){
 			if(error){
 				errorMsg += '\n' + error;
 			}
-			throw new Error(errorMsg);
+			console.log(errorMsg);
 		}
 	});
 }
