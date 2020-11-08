@@ -75,10 +75,11 @@ function initiateXtreamRequests(config){
 		}
     
 		else{
-			console.log('Something went wrong. Check if your username/password/host is correct.');
+			let errorMsg = 'Something went wrong. Check if your username/password/host is correct.';
 			if(error){
-				console.log('\n Error: ' + error);
+				errorMsg += '\n' + error;
 			}
+			throw new Error(errorMsg);
 		}
 	});
     
@@ -95,19 +96,19 @@ function fetchLiveChannels(config, categoryDict){
 			if(fsExtra.pathExistsSync(config.vlcPath)){
 				createShortcut();
 				let execCommand = getExecCommand(config.vlcPath, M3U_FOLDER_NAME + '/' + m3uFileName);
-				console.log(execCommand);
 				execSync(execCommand);
 			}
 			else{
-				console.log('Could not find VLC executable. Check your path in ' + CONFIG_FILE_NAME + ' and make sure it is correct.');
+				throw new Error('Could not find VLC executable. Check your path in ' + CONFIG_FILE_NAME + ' and make sure it is correct.');
 			}
 		}
 
 		else{
-			console.log('Something went wrong. Check if your username/password/host is correct.');
+			let errorMsg = 'Something went wrong. Check if your username/password/host is correct.';
 			if(error){
-				console.log('\n Error: ' + error);
+				errorMsg += '\n' + error;
 			}
+			throw new Error(errorMsg);
 		}
 	});
 }
@@ -177,21 +178,33 @@ function createBatFile(){
 	}
 }
 
-function getExecCommand(filePath, m3uFilePath){
+function getExecCommand(vlcPath, m3uFilePath){
 	let execCommand = '';
 	switch(process.platform){
 	case 'win32':
-		execCommand = getWindowsExecCommand(filePath);
+		execCommand = getWindowsExecCommand(vlcPath, m3uFilePath);
 		break;
 	case 'darwin':
-		execCommand = getMacExecCommand(filePath);
+		execCommand = getMacExecCommand(vlcPath, m3uFilePath);
 		break;
 	case 'linux':
 		//TODO: Add functionality
 		break;
 	}
+	
+	return execCommand;
+}
 
-	return execCommand + ' ' + m3uFilePath;
+function getWindowsExecCommand(vlcPath, m3uFilePath){
+	let execCommand = vlcPath + ' ' + m3uFilePath;
+	if(vlcPath.charAt(0) != '"' && vlcPath.charAt(vlcPath -1) != '"'){
+		execCommand = '"' + vlcPath + '" ' + m3uFilePath;
+	}
+	return execCommand; 
+}
+
+function getMacExecCommand(vlcPath, m3uFilePath){
+	return 'open -a ' + vlcPath + ' ' + m3uFilePath;
 }
 
 function findVlcFromDefaultPath(){
@@ -223,17 +236,6 @@ function getPathFromList(pathList){
 		} 
 	}
 	return null;
-}
-
-function getWindowsExecCommand(filePath){
-	if(filePath.charAt(0) != '"' && filePath.charAt(filePath -1) != '"'){
-		return '"' + filePath + '"';
-	}
-	return filePath;
-}
-
-function getMacExecCommand(filePath){
-	return 'open -a ' + filePath;
 }
 
 function isDir(pathItem) {
