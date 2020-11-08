@@ -114,7 +114,7 @@ function fetchLiveChannels(config, categoryDict){
 }
 
 function createM3u(config, categoryDict, liveChannels){
-	let fileHeader = '#EXTM3U url-tvg=""';
+	let fileHeader = '#EXTM3U';
 	let fileBody = '';
 
 	liveChannels.forEach(liveChannel => {
