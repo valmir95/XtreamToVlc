@@ -6,7 +6,7 @@ const rls = require('readline-sync');
 const process = require('process');
 
 const CONFIG_FILE_NAME = 'xtvConfig.json';
-const SHORTCUT_NAME = 'StartVLC';
+const SHORTCUT_NAME = 'StartVLCWithXtream';
 const M3U_FOLDER_NAME = 'm3u_files';
 
 

@@ -24,7 +24,7 @@ npm start
 ### Installation manually
 
 If you don't want/can't use git, you can also simply download the repository as a zip.
-After you download it, unzip/extract the content to the desired folder. Open a command line inside of the repository folder (XtreamToVlc) and run the following commands, one by one:
+After you download it, unzip/extract the content to the desired folder. Open a command line inside of the repository folder directory (XtreamToVlc) and run the following commands, one by one:
 
 ```sh
 npm install
