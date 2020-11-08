@@ -94,7 +94,9 @@ function fetchLiveChannels(config, categoryDict){
 
 			if(fsExtra.pathExistsSync(config.vlcPath)){
 				createShortcut();
-				execSync(getExecCommand(config.vlcPath) + ' ' + M3U_FOLDER_NAME + '/' + m3uFileName);
+				let execCommand = getExecCommand(config.vlcPath, M3U_FOLDER_NAME + '/' + m3uFileName);
+				console.log(execCommand);
+				execSync(execCommand);
 			}
 			else{
 				console.log('Could not find VLC executable. Check your path in ' + CONFIG_FILE_NAME + ' and make sure it is correct.');
@@ -175,7 +177,7 @@ function createBatFile(){
 	}
 }
 
-function getExecCommand(filePath){
+function getExecCommand(filePath, m3uFilePath){
 	let execCommand = '';
 	switch(process.platform){
 	case 'win32':
@@ -189,7 +191,7 @@ function getExecCommand(filePath){
 		break;
 	}
 
-	return execCommand;
+	return execCommand + ' ' + m3uFilePath;
 }
 
 function findVlcFromDefaultPath(){
