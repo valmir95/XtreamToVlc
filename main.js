@@ -9,7 +9,6 @@ const CONFIG_FILE_NAME = 'xtvConfig.json';
 const SHORTCUT_NAME = 'StartVLCWithXtream';
 const M3U_FOLDER_NAME = 'm3u_files';
 
-
 try {
     run();
 } catch (error) {
@@ -17,95 +16,125 @@ try {
     console.log('Encountered error: ' + error);
 }
 
-
-function run(){
-    let configObj;
-    
-    if (fsExtra.existsSync(CONFIG_FILE_NAME)) {
-        let configFile = fsExtra.readFileSync(CONFIG_FILE_NAME);
-        configObj = JSON.parse(configFile);
-    }
-
-    else{
-        console.log('No config file present. Enter following information to create the config file: \n');
-        configObj = getConfigFromUserInput();
-        createConfigJson(configObj);   
-    }
-
+function run() {
+    let configObj = getConfigObj();
     initiateXtreamRequests(configObj);
 }
 
-function getConfigFromUserInput(){
+function getConfigObj(){
+    let configObj; 
+    if (fsExtra.existsSync(CONFIG_FILE_NAME)) {
+        try {
+            let configFile = fsExtra.readFileSync(CONFIG_FILE_NAME);
+            configObj = JSON.parse(configFile);
+        } catch (error) {
+            console.log('Could not read ' + CONFIG_FILE_NAME + '. Please enter the following information again to generate a new file: ');
+            fsExtra.removeSync(CONFIG_FILE_NAME);
+            configObj = getConfigFromUserInput();
+            createConfigJson(configObj);
+        }
+        
+    } else {
+        console.log(
+            'No config file present. Enter following information to create the config file: \n'
+        );
+        configObj = getConfigFromUserInput();
+        createConfigJson(configObj);
+    }
+
+    return configObj;
+}
+
+function getConfigFromUserInput() {
     let hostInput = rls.question('Host (format: http://<domain>:<port>): ');
     let usernameInput = rls.question('Xtream username: ');
     let passwordInput = rls.question('Xtream password: ');
     let vlcPath = findVlcFromDefaultPath();
-    let configObj = {host: hostInput, username: usernameInput, password: passwordInput, vlcPath: vlcPath};
+    let configObj = {
+        host: hostInput,
+        username: usernameInput,
+        password: passwordInput,
+        vlcPath: vlcPath,
+    };
     return configObj;
 }
 
 //TODO: Maybe get rid of requests package?
 //TODO: Better function name
-function initiateXtreamRequests(config){
+function initiateXtreamRequests(config) {
     console.log(config);
     let categoryDict = {};
 
     //TODO: Structure
-    if(config.host.charAt(config.host.length - 1) != '/') config.host += '/';
+    if (config.host.charAt(config.host.length - 1) != '/') config.host += '/';
 
     //If vlc path is a directory, we try and append the executable.
-    if(config.vlcPath != null && isDir(config.vlcPath)){
-        if(config.vlcPath.charAt(config.vlcPath.length - 1) != '/') config.vlcPath += '/';
+    if (config.vlcPath != null && isDir(config.vlcPath)) {
+        if (config.vlcPath.charAt(config.vlcPath.length - 1) != '/')
+            config.vlcPath += '/';
         config.vlcPath += 'vlc.' + getVlcFileExt();
     }
 
-
     fsExtra.emptyDirSync(M3U_FOLDER_NAME);
 
-
-    let liveCategoriesUrl = config.host + 'player_api.php?username=' + config.username + '&password=' + config.password + '&action=get_live_categories';
-    request({url: liveCategoriesUrl, json: true}, (error, res, body) => {
+    let liveCategoriesUrl =
+        config.host +
+        'player_api.php?username=' +
+        config.username +
+        '&password=' +
+        config.password +
+        '&action=get_live_categories';
+    request({ url: liveCategoriesUrl, json: true }, (error, res, body) => {
         //TODO: Needs better checks.
         if (!error && res.statusCode == 200 && Array.isArray(body)) {
-            body.forEach(category => {
-                categoryDict[category.category_id] = category.category_name; 
+            body.forEach((category) => {
+                categoryDict[category.category_id] = category.category_name;
             });
             //TODO: Use promises instead
             fetchLiveChannels(config, categoryDict);
-        }
-    
-        else{
-            let errorMsg = 'Something went wrong. Check if your username/password/host is correct.';
-            if(error){
+        } else {
+            let errorMsg =
+                'Something went wrong. Check if your username/password/host is correct.';
+            if (error) {
                 errorMsg += '\n' + error;
             }
             console.log(errorMsg);
         }
     });
-    
 }
 
 //TODO: Use promises instead
-function fetchLiveChannels(config, categoryDict){
-    let liveChannelsUrl = config.host + 'player_api.php?username=' + config.username + '&password=' + config.password + '&action=get_live_streams';
-    request({url: liveChannelsUrl, json: true}, (error, res, body) => {
+function fetchLiveChannels(config, categoryDict) {
+    let liveChannelsUrl =
+        config.host +
+        'player_api.php?username=' +
+        config.username +
+        '&password=' +
+        config.password +
+        '&action=get_live_streams';
+    request({ url: liveChannelsUrl, json: true }, (error, res, body) => {
         //TODO: Better error-checks
         if (!error && res.statusCode == 200 && Array.isArray(body)) {
             let m3uFileName = createM3u(config, categoryDict, body);
 
-            if(fsExtra.pathExistsSync(config.vlcPath)){
+            if (fsExtra.pathExistsSync(config.vlcPath)) {
                 createShortcut();
-                let execCommand = getExecCommand(config.vlcPath, M3U_FOLDER_NAME + '/' + m3uFileName);
+                let execCommand = getExecCommand(
+                    config.vlcPath,
+                    M3U_FOLDER_NAME + '/' + m3uFileName
+                );
                 execSync(execCommand);
+            } else {
+                console.log(
+                    'Could not find VLC executable. Check your path in ' +
+                        CONFIG_FILE_NAME +
+                        ' and make sure it is correct.'
+                );
             }
-            else{
-                console.log('Could not find VLC executable. Check your path in ' + CONFIG_FILE_NAME + ' and make sure it is correct.');
-            }
-        }
-
-        else{
-            let errorMsg = 'Something went wrong. Check if your username/password/host is correct.';
-            if(error){
+        } else {
+            let errorMsg =
+                'Something went wrong. Check if your username/password/host is correct.';
+            if (error) {
                 errorMsg += '\n' + error;
             }
             console.log(errorMsg);
@@ -113,42 +142,66 @@ function fetchLiveChannels(config, categoryDict){
     });
 }
 
-function createM3u(config, categoryDict, liveChannels){
+function createM3u(config, categoryDict, liveChannels) {
     let fileHeader = '#EXTM3U';
     let fileBody = '';
 
-    liveChannels.forEach(liveChannel => {
-        fileBody += '#EXTINF:-1 ' 
-        + 'tvg-id=' + '"' + liveChannel.epg_channel_id + '"'
-        + ' tvg-name=' + '"' + liveChannel.name + '"'
-        + ' tvg-logo=' + '"' + liveChannel.stream_icon + '"'
-        + ' group-title=' + '"' + categoryDict[liveChannel.category_id] + '"'
-        + ',' + liveChannel.name
-        + '\n' + config.host + 'live/' + config.username + '/' + config.password + '/' + liveChannel.stream_id + '.ts'
-        + '\n';
+    liveChannels.forEach((liveChannel) => {
+        fileBody +=
+            '#EXTINF:-1 ' +
+            'tvg-id=' +
+            '"' +
+            liveChannel.epg_channel_id +
+            '"' +
+            ' tvg-name=' +
+            '"' +
+            liveChannel.name +
+            '"' +
+            ' tvg-logo=' +
+            '"' +
+            liveChannel.stream_icon +
+            '"' +
+            ' group-title=' +
+            '"' +
+            categoryDict[liveChannel.category_id] +
+            '"' +
+            ',' +
+            liveChannel.name +
+            '\n' +
+            config.host +
+            'live/' +
+            config.username +
+            '/' +
+            config.password +
+            '/' +
+            liveChannel.stream_id +
+            '.ts' +
+            '\n';
     });
 
     let completeFileStr = fileHeader + '\n' + fileBody;
     //TODO: Use a better name
     let fileName = Date.now() + '.m3u';
-    if (!fsExtra.existsSync(M3U_FOLDER_NAME)){
+    if (!fsExtra.existsSync(M3U_FOLDER_NAME)) {
         fsExtra.mkdirSync(M3U_FOLDER_NAME);
     }
     fsExtra.appendFileSync(M3U_FOLDER_NAME + '/' + fileName, completeFileStr);
     return fileName;
-    
 }
 
-function createConfigJson(configObj){
+function createConfigJson(configObj) {
     let configObjCopy = Object.assign({}, configObj);
-    if(configObjCopy.vlcPath == null){
+    if (configObjCopy.vlcPath == null) {
         configObjCopy.vlcPath = '';
     }
-    fsExtra.appendFileSync(CONFIG_FILE_NAME, JSON.stringify(configObjCopy, null, 4));
+    fsExtra.appendFileSync(
+        CONFIG_FILE_NAME,
+        JSON.stringify(configObjCopy, null, 4)
+    );
 }
 
-function createShortcut(){
-    switch(process.platform){
+function createShortcut() {
+    switch (process.platform) {
     case 'win32':
         createBatFile();
         break;
@@ -158,9 +211,9 @@ function createShortcut(){
     }
 }
 
-function createShFile(){
+function createShFile() {
     let shortcutFileName = SHORTCUT_NAME + '.command';
-    if(!fsExtra.pathExistsSync(shortcutFileName)){
+    if (!fsExtra.pathExistsSync(shortcutFileName)) {
         let cd = 'cd "' + process.cwd() + '"';
         let nodeExec = 'npm start';
         fsExtra.appendFileSync(shortcutFileName, cd + '\n' + nodeExec);
@@ -168,19 +221,22 @@ function createShFile(){
     }
 }
 
-function createBatFile(){
+function createBatFile() {
     let shortcutFileName = SHORTCUT_NAME + '.bat';
-    if(!fsExtra.pathExistsSync(shortcutFileName)){
+    if (!fsExtra.pathExistsSync(shortcutFileName)) {
         let pushd = 'pushd "' + process.cwd() + '"';
         let nodeExec = 'npm start';
         let pauseEnter = 'pause press [enter]';
-        fsExtra.appendFileSync(shortcutFileName, pushd + '\n' + nodeExec + '\n' + pauseEnter);
+        fsExtra.appendFileSync(
+            shortcutFileName,
+            pushd + '\n' + nodeExec + '\n' + pauseEnter
+        );
     }
 }
 
-function getExecCommand(vlcPath, m3uFilePath){
+function getExecCommand(vlcPath, m3uFilePath) {
     let execCommand = '';
-    switch(process.platform){
+    switch (process.platform) {
     case 'win32':
         execCommand = getWindowsExecCommand(vlcPath, m3uFilePath);
         break;
@@ -191,34 +247,32 @@ function getExecCommand(vlcPath, m3uFilePath){
         //TODO: Add functionality
         break;
     }
-	
+
     return execCommand;
 }
 
-function getWindowsExecCommand(vlcPath, m3uFilePath){
+function getWindowsExecCommand(vlcPath, m3uFilePath) {
     let execCommand = vlcPath + ' ' + m3uFilePath;
-    if(vlcPath.charAt(0) != '"' && vlcPath.charAt(vlcPath -1) != '"'){
+    if (vlcPath.charAt(0) != '"' && vlcPath.charAt(vlcPath - 1) != '"') {
         execCommand = '"' + vlcPath + '" ' + m3uFilePath;
     }
-    return execCommand; 
+    return execCommand;
 }
 
-function getMacExecCommand(vlcPath, m3uFilePath){
+function getMacExecCommand(vlcPath, m3uFilePath) {
     return 'open -a ' + vlcPath + ' ' + m3uFilePath;
 }
 
-function findVlcFromDefaultPath(){
+function findVlcFromDefaultPath() {
     let path = null;
     const DEFAULT_WINDOWS_PATHS = [
         'C:/Program Files/VideoLAN/VLC/vlc.exe',
-        'C:/Program Files (x86)/VideoLAN/VLC/vlc.exe'
+        'C:/Program Files (x86)/VideoLAN/VLC/vlc.exe',
     ];
 
-    const DEFAULT_MAC_PATHS = [
-        '/Applications/vlc.app'
-    ];
+    const DEFAULT_MAC_PATHS = ['/Applications/vlc.app'];
 
-    switch(process.platform){
+    switch (process.platform) {
     case 'win32':
         path = getPathFromList(DEFAULT_WINDOWS_PATHS);
         break;
@@ -229,11 +283,11 @@ function findVlcFromDefaultPath(){
     return path;
 }
 
-function getPathFromList(pathList){
-    for(let i = 0; i<pathList.length; i++){
-        if(fsExtra.pathExistsSync(pathList[i])){
+function getPathFromList(pathList) {
+    for (let i = 0; i < pathList.length; i++) {
+        if (fsExtra.pathExistsSync(pathList[i])) {
             return pathList[i];
-        } 
+        }
     }
     return null;
 }
@@ -242,9 +296,9 @@ function isDir(pathItem) {
     return !path.extname(pathItem);
 }
 
-function getVlcFileExt(){
+function getVlcFileExt() {
     let ext = '';
-    switch(process.platform){
+    switch (process.platform) {
     case 'win32':
         ext = 'exe';
         break;
@@ -254,5 +308,3 @@ function getVlcFileExt(){
     }
     return ext;
 }
-
-
