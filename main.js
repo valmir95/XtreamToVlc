@@ -13,7 +13,7 @@ try {
     run();
 } catch (error) {
     //TODO: Better error handling.
-    console.log('Encountered error: ' + error);
+    errorOnWait(error);
 }
 
 function run() {
@@ -94,11 +94,11 @@ function initiateXtreamRequests(config) {
             fetchLiveChannels(config, categoryDict);
         } else {
             let errorMsg =
-                'Something went wrong. Check if your username/password/host is correct.';
+                'Could not connect to host. Check your host or username/password credentials';
             if (error) {
                 errorMsg += '\n' + error;
             }
-            console.log(errorMsg);
+            errorOnWait(new Error(errorMsg));
         }
     });
 }
@@ -133,11 +133,11 @@ function fetchLiveChannels(config, categoryDict) {
             }
         } else {
             let errorMsg =
-                'Something went wrong. Check if your username/password/host is correct.';
+                'Could not connect to host. Check your host or username/password credentials';
             if (error) {
                 errorMsg += '\n' + error;
             }
-            console.log(errorMsg);
+            errorOnWait(new Error(errorMsg));
         }
     });
 }
@@ -307,4 +307,13 @@ function getVlcFileExt() {
         break;
     }
     return ext;
+}
+
+function errorOnWait(error){
+    let errMsg = error.message;
+    if(typeof error === 'string' || error instanceof String){
+        errMsg = error;
+    }
+    console.log(errMsg);
+    rls.question('Program exited. Press any key to continue...');
 }
