@@ -50,13 +50,15 @@ function getConfigFromUserInput() {
     let usernameInput = rls.question('Xtream username: ');
     let passwordInput = rls.question('Xtream password: ');
     let vlcPath = findVlcFromDefaultPath();
-    let configObj = {
+    if(!vlcPath){
+        vlcPath = rls.question('Could not find VLC at the default location. If VLC is installed, enter the directory here: ');
+    }
+    return {
         host: hostInput,
         username: usernameInput,
         password: passwordInput,
         vlcPath: vlcPath,
     };
-    return configObj;
 }
 
 //TODO: Maybe get rid of requests package?
@@ -201,18 +203,21 @@ function createConfigJson(configObj) {
 }
 
 function createShortcut() {
-    switch (process.platform) {
-    case 'win32':
+
+    if(process.platform == 'win32'){
         createBatFile();
-        break;
-    case 'darwin':
+    }
+    else{
         createShFile();
-        break;
     }
 }
 
 function createShFile() {
-    let shortcutFileName = SHORTCUT_NAME + '.command';
+    let fileExt = '.sh';
+    if(process.platform == 'darwin'){
+        fileExt = '.command';
+    }
+    let shortcutFileName = SHORTCUT_NAME + fileExt;
     if (!fsExtra.pathExistsSync(shortcutFileName)) {
         let cd = 'cd "' + process.cwd() + '"';
         let nodeExec = 'npm start';
@@ -244,7 +249,7 @@ function getExecCommand(vlcPath, m3uFilePath) {
         execCommand = getMacExecCommand(vlcPath, m3uFilePath);
         break;
     case 'linux':
-        //TODO: Add functionality
+        execCommand = getLinuxExecCommand(vlcPath, m3uFilePath);
         break;
     }
 
@@ -263,8 +268,12 @@ function getMacExecCommand(vlcPath, m3uFilePath) {
     return 'open -a ' + vlcPath + ' ' + m3uFilePath;
 }
 
+function getLinuxExecCommand(vlcPath, m3uFilePath) {
+    return vlcPath + ' ' + m3uFilePath;
+}
+
 function findVlcFromDefaultPath() {
-    let path = null;
+    let vlcPath = null;
     const DEFAULT_WINDOWS_PATHS = [
         'C:/Program Files/VideoLAN/VLC/vlc.exe',
         'C:/Program Files (x86)/VideoLAN/VLC/vlc.exe',
@@ -272,15 +281,22 @@ function findVlcFromDefaultPath() {
 
     const DEFAULT_MAC_PATHS = ['/Applications/vlc.app'];
 
+    const DEFAULT_LINUX_PATHS = ['/usr/bin/vlc'];
+
     switch (process.platform) {
     case 'win32':
-        path = getPathFromList(DEFAULT_WINDOWS_PATHS);
+        vlcPath = getPathFromList(DEFAULT_WINDOWS_PATHS);
         break;
     case 'darwin':
-        path = getPathFromList(DEFAULT_MAC_PATHS);
+        vlcPath = getPathFromList(DEFAULT_MAC_PATHS);
+        break;
+    
+    case 'linux':
+        vlcPath = getPathFromList(DEFAULT_LINUX_PATHS);
         break;
     }
-    return path;
+
+    return vlcPath;
 }
 
 function getPathFromList(pathList) {
