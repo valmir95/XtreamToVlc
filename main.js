@@ -71,7 +71,7 @@ function initiateXtreamRequests(config) {
     if (config.host.charAt(config.host.length - 1) != '/') config.host += '/';
 
     //If vlc path is a directory, we try and append the executable.
-    if (config.vlcPath != null && isDir(config.vlcPath)) {
+    if (process.platform != 'linux' && config.vlcPath != null && isDir(config.vlcPath)) {
         if (config.vlcPath.charAt(config.vlcPath.length - 1) != '/')
             config.vlcPath += '/';
         config.vlcPath += 'vlc.' + getVlcFileExt();
@@ -118,7 +118,6 @@ function fetchLiveChannels(config, categoryDict) {
         //TODO: Better error-checks
         if (!error && res.statusCode == 200 && Array.isArray(body)) {
             let m3uFileName = createM3u(config, categoryDict, body);
-
             if (fsExtra.pathExistsSync(config.vlcPath)) {
                 createShortcut();
                 let execCommand = getExecCommand(
